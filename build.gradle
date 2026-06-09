@@ -1,0 +1,28 @@
+plugins {
+    id 'java'
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation project(':app')
+}
+
+tasks.register('extractXsdSubset', JavaExec) {
+    description = 'Extracts a subset of the XSD schemas starting from the specified root elements.'
+    group = 'build'
+
+    classpath = sourceSets.main.runtimeClasspath
+    mainClass = 'com.wxbrew.app.App'
+
+    // Configure task using the new name/version pattern and default splitting mode
+    args = [
+        '-n', 'UCI_MessageDefinitions',
+        '-v', '2.5.0',
+        '-d', file('schemas').absolutePath,
+        '-o', layout.buildDirectory.dir("extracted-schemas").get().asFile.absolutePath,
+        '-r', 'AccessAssessment,Action'
+    ]
+}
