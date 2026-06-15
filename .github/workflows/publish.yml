@@ -22,19 +22,21 @@ jobs:
           server-username: MAVEN_CENTRAL_USERNAME
           server-password: MAVEN_CENTRAL_TOKEN
 
-      # Import GPG key into the system keyring (used by Maven GPG plugin)
+      # Import GPG key into the system keyring (used by both Gradle and Maven signing)
       - name: Import GPG key
         uses: crazy-max/ghaction-import-gpg@v6
         with:
           gpg_private_key: ${{ secrets.GPG_PRIVATE_KEY }}
           passphrase: ${{ secrets.GPG_PASSPHRASE }}
 
-      # Publish core and plugin to Maven Central via vanniktech (in-memory signing)
+      # Publish core and plugin to Maven Central via vanniktech
       - name: Publish Gradle modules to Maven Central
         run: ./gradlew publishAllPublicationsToMavenCentralRepository --no-configuration-cache
         env:
           MAVEN_CENTRAL_USERNAME: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
           MAVEN_CENTRAL_TOKEN: ${{ secrets.MAVEN_CENTRAL_TOKEN }}
+          ORG_GRADLE_PROJECT_mavenCentralUsername: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
+          ORG_GRADLE_PROJECT_mavenCentralPassword: ${{ secrets.MAVEN_CENTRAL_TOKEN }}
 
       # Install core locally so the Maven plugin can build against it
       - name: Install core to local Maven repo
