@@ -13,7 +13,7 @@ mavenPublishing {
         name = 'XSD Schema Subset Extractor Core'
         description = 'Core library to extract minimal, self-contained XML Schema (XSD) files from a larger schema definition.'
         url = 'https://github.com/wxbrew/XsdSchemaSubsetExtractor'
-        inceptionYear = '2024'
+        inceptionYear = '2026'
         licenses {
             license {
                 name = 'MIT License'
@@ -24,7 +24,7 @@ mavenPublishing {
         developers {
             developer {
                 id = 'wxbrew'
-                name = 'M Dawson'
+                name = 'Matthew Dawson'
                 email = 'md@wxbrew.com'
             }
         }

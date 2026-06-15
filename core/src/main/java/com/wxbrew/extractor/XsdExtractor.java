@@ -633,19 +633,23 @@ public class XsdExtractor {
      */
     private String extractTopLevelElementText(String sourceContent, String xsTagName, String nameValue) {
         String[] lines = sourceContent.split("\n", -1);
-        String startPrefix = "\t<" + xsTagName;
-        String endTag = "\t</" + xsTagName + ">";
+        String openTag = "<" + xsTagName;
         String nameAttr = "name=\"" + nameValue + "\"";
 
         for (int i = 0; i < lines.length; i++) {
             String line = lines[i];
-            if (!line.startsWith(startPrefix)) continue;
+            String trimmed = line.stripLeading();
+            if (!trimmed.startsWith(openTag + " ") && !trimmed.startsWith(openTag + ">") && !trimmed.startsWith(openTag + "/>")) continue;
             if (!line.contains(nameAttr)) continue;
 
-            // Self-closing element
+            // Capture whatever indentation this line uses (tab or spaces)
+            String indent = line.substring(0, line.length() - trimmed.length());
+
             if (line.stripTrailing().endsWith("/>")) {
                 return line;
             }
+
+            String closeTag = indent + "</" + xsTagName + ">";
 
             StringBuilder sb = new StringBuilder();
             sb.append(line);
@@ -654,8 +658,7 @@ public class XsdExtractor {
             while (i < lines.length) {
                 String next = lines[i];
                 sb.append("\n").append(next);
-                // Closing tag at one-tab indent signals end of this top-level element
-                if (next.startsWith("\t</") && next.trim().equals("</" + xsTagName + ">")) {
+                if (next.equals(closeTag) || next.stripTrailing().equals(closeTag)) {
                     break;
                 }
                 i++;
