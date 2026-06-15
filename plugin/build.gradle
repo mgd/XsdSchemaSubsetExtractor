@@ -54,9 +54,8 @@ mavenPublishing {
 }
 
 signing {
-    required {
-        project.hasProperty("signingInMemoryKey") || project.hasProperty("signing.keyId")
-    }
+    useGpgCmd()
+    required { System.getenv("MAVEN_CENTRAL_USERNAME") != null }
 }
 
 // Also publish to the local file repo consumed by examples/test-project
