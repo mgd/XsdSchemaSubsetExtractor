@@ -1,12 +1,10 @@
-import com.vanniktech.maven.publish.SonatypeHost
-
 plugins {
     id 'buildlogic.java-library-conventions'
     id 'com.vanniktech.maven.publish'
 }
 
 mavenPublishing {
-    publishToMavenCentral(SonatypeHost.CENTRAL_PORTAL, true)
+    publishToMavenCentral()
     signAllPublications()
 
     pom {

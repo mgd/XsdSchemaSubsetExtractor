@@ -31,7 +31,7 @@ jobs:
 
       # Publish core and plugin to Maven Central via vanniktech
       - name: Publish Gradle modules to Maven Central
-        run: ./gradlew publishAllPublicationsToMavenCentralRepository --no-configuration-cache
+        run: ./gradlew publishAndReleaseToMavenCentral
         env:
           MAVEN_CENTRAL_USERNAME: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
           MAVEN_CENTRAL_TOKEN: ${{ secrets.MAVEN_CENTRAL_TOKEN }}
