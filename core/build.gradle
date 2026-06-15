@@ -37,7 +37,9 @@ mavenPublishing {
 }
 
 signing {
-    useGpgCmd()
+    if (System.getenv("MAVEN_CENTRAL_USERNAME") != null) {
+        useGpgCmd()
+    }
     required { System.getenv("MAVEN_CENTRAL_USERNAME") != null }
 }
 
