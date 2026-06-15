@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:fmc="http://example.com/financial/catalog" xmlns:fm="http://example.com/financial" xmlns:xs="http://www.w3.org/2001/XMLSchema" targetNamespace="http://example.com/financial/catalog" elementFormDefault="qualified" attributeFormDefault="unqualified" version="001.0.0">
+	<xs:annotation>
+		<xs:documentation>Financial Message Catalog — entry-point schema for the extractor.
+
+Demonstrates xs:import of a schema in a different namespace. The extractor is pointed at this
+file (schemaName=FinancialMessage_Catalog, schemaVersion=1.0) and traverses the import to reach
+the root elements (Order, Settlement) defined in FinancialMessage_Definitions.
+		</xs:documentation>
+	</xs:annotation>
+	<xs:import namespace="http://example.com/financial" schemaLocation="FinancialMessage_Definitions_v1_0.xsd"/>
+	<xs:attribute name="schemaVersion" type="fmc:SchemaVersionType" fmc:version="001.000.000"/>
+	<!--== CATALOG SIMPLE TYPES ==-->
+	<xs:simpleType name="SchemaVersionType" fmc:version="001.000.000">
+		<xs:annotation>
+			<xs:documentation>Catalog schema version in the form of exactly three 3-digit fields (e.g. 001.000.000).
+A change to the leading field indicates a breaking structural change to the message catalog.</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string">
+			<xs:minLength value="11"/>
+			<xs:maxLength value="11"/>
+			<xs:pattern value="[0-9]{3}\.[0-9]{3}\.[0-9]{3}"/>
+		</xs:restriction>
+	</xs:simpleType>
+</xs:schema>

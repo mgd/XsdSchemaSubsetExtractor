@@ -1,0 +1,12 @@
+plugins {
+    id 'com.wxbrew.schema-extractor' version '1.0.0'
+}
+
+schemaExtractor {
+    schemaName = 'FinancialMessage_Catalog'
+    schemaVersion = '1.0'
+    schemaDir = file("${rootDir}/../schemas")
+    outputDir = layout.buildDirectory.dir("extracted-schemas")
+    rootElements = ["Order", "Settlement"]
+    mergeRootElementsIntoSingleSchema = false
+}

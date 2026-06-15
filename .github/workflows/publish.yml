@@ -1,0 +1,52 @@
+name: Publish to Maven Central
+
+on:
+  release:
+    types: [created]
+  workflow_dispatch:
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # Java + Maven settings.xml wired to Central Portal credentials
+      - uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: 'gradle'
+          server-id: central
+          server-username: MAVEN_CENTRAL_USERNAME
+          server-password: MAVEN_CENTRAL_TOKEN
+
+      # Import GPG key into the system keyring (used by Maven GPG plugin)
+      - name: Import GPG key
+        uses: crazy-max/ghaction-import-gpg@v6
+        with:
+          gpg_private_key: ${{ secrets.GPG_PRIVATE_KEY }}
+          passphrase: ${{ secrets.GPG_PASSPHRASE }}
+
+      # Publish core and plugin to Maven Central via vanniktech (in-memory signing)
+      - name: Publish Gradle modules to Maven Central
+        run: ./gradlew publishAllPublicationsToMavenCentralRepository
+        env:
+          MAVEN_CENTRAL_USERNAME: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
+          MAVEN_CENTRAL_TOKEN: ${{ secrets.MAVEN_CENTRAL_TOKEN }}
+          ORG_GRADLE_PROJECT_signingInMemoryKey: ${{ secrets.GPG_PRIVATE_KEY }}
+          ORG_GRADLE_PROJECT_signingInMemoryKeyPassword: ${{ secrets.GPG_PASSPHRASE }}
+
+      # Install core locally so the Maven plugin can build against it
+      - name: Install core to local Maven repo
+        run: ./gradlew :core:publishToMavenLocal
+
+      # Publish Maven plugin (central-publishing-maven-plugin handles the upload;
+      # maven-gpg-plugin uses the key imported by crazy-max/ghaction-import-gpg above)
+      - name: Publish Maven plugin to Maven Central
+        run: cd maven-plugin && mvn deploy -B --no-transfer-progress
+        env:
+          MAVEN_CENTRAL_USERNAME: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
+          MAVEN_CENTRAL_TOKEN: ${{ secrets.MAVEN_CENTRAL_TOKEN }}
+          GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}

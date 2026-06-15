@@ -1,0 +1,258 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:fm="http://example.com/financial" xmlns:xs="http://www.w3.org/2001/XMLSchema" targetNamespace="http://example.com/financial" elementFormDefault="qualified" attributeFormDefault="unqualified" version="001.0.0">
+	<xs:annotation>
+		<xs:documentation>Financial Message type and element definitions.
+
+Demonstrates all extractor features in a financial domain:
+  - xs:include of FinancialMessage_Common (same namespace, multi-file traversal)
+  - Polymorphic Extension Types (PETs): abstract complexTypes whose concrete subtypes are
+    pulled in automatically. Consumers supply xsi:type on the containing element.
+  - Nested PET: DerivativeInstrumentPET is itself abstract and extended by OptionType and FutureType.
+  - xs:group (MessageHeaderGroup), xs:attributeGroup (VersionedAttrs from Common)
+  - xs:simpleType with xs:list (OrderSideListType) and xs:union (IdentifierOrUnknownType)
+  - Root xs:element declarations: Order and Settlement
+		</xs:documentation>
+	</xs:annotation>
+	<xs:include schemaLocation="FinancialMessage_Common_v1_0.xsd"/>
+	<!--== GROUPS ==-->
+	<xs:group name="MessageHeaderGroup" fm:version="001.000.000">
+		<xs:annotation>
+			<xs:documentation>Standard header sequence present in every financial message.
+All three child elements are required and must appear in the order shown.</xs:documentation>
+		</xs:annotation>
+		<xs:sequence>
+			<xs:element name="MessageId" type="xs:string"/>
+			<xs:element name="Timestamp" type="xs:dateTime"/>
+			<xs:element name="Compliance" type="fm:ComplianceMarkingType"/>
+		</xs:sequence>
+	</xs:group>
+	<!--== PET: InstrumentPET
+       Concrete subtypes: EquityInstrumentType, DebtInstrumentType
+       Abstract subtype (nested PET): DerivativeInstrumentPET
+         Concrete subtypes of DerivativeInstrumentPET: OptionType, FutureType ==-->
+	<xs:complexType name="InstrumentPET" abstract="true" fm:version="001.000.000">
+		<xs:annotation>
+			<xs:documentation>Abstract base for all tradeable financial instruments.
+Use xsi:type to supply a concrete subtype:
+  - EquityInstrumentType (stocks, ETFs, ADRs)
+  - DebtInstrumentType (bonds, notes, bills)
+  - OptionType or FutureType via intermediate DerivativeInstrumentPET
+Note: Ticker symbols must be > 0 characters.</xs:documentation>
+		</xs:annotation>
+		<xs:sequence>
+			<xs:element name="Ticker" type="fm:IdentifierTokenType"/>
+			<xs:element name="ISIN" type="xs:string" minOccurs="0"/>
+			<xs:element name="RegulatoryStatus" type="fm:RegulatoryStatusType" minOccurs="0"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="EquityInstrumentType" fm:version="001.000.000">
+		<xs:annotation>
+			<xs:documentation>Equity instrument: common stock, preferred stock, ETF, or ADR.</xs:documentation>
+		</xs:annotation>
+		<xs:complexContent>
+			<xs:extension base="fm:InstrumentPET">
+				<xs:sequence>
+					<xs:element name="Exchange" type="xs:string"/>
+					<xs:element name="ShareClassCode" type="xs:string" minOccurs="0"/>
+				</xs:sequence>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType name="DebtInstrumentType" fm:version="001.000.000">
+		<xs:annotation>
+			<xs:documentation>Debt instrument: bond, note, bill, or other fixed-income security.</xs:documentation>
+		</xs:annotation>
+		<xs:complexContent>
+			<xs:extension base="fm:InstrumentPET">
+				<xs:sequence>
+					<xs:element name="CouponRatePct" type="xs:decimal" minOccurs="0"/>
+					<xs:element name="MaturityDate" type="xs:date" minOccurs="0"/>
+					<xs:element name="FaceValue" type="fm:MonetaryAmountType" minOccurs="0"/>
+				</xs:sequence>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType name="DerivativeInstrumentPET" abstract="true" fm:version="001.000.000">
+		<xs:annotation>
+			<xs:documentation>Abstract intermediate PET for derivative instruments.
+Extends InstrumentPET and is itself abstract; use xsi:type to supply OptionType or FutureType.</xs:documentation>
+		</xs:annotation>
+		<xs:complexContent>
+			<xs:extension base="fm:InstrumentPET">
+				<xs:sequence>
+					<xs:element name="UnderlyingTicker" type="fm:IdentifierTokenType"/>
+					<xs:element name="ExpirationDate" type="xs:date"/>
+					<xs:element name="ContractSize" type="xs:decimal" minOccurs="0"/>
+				</xs:sequence>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType name="OptionType" fm:version="001.000.000">
+		<xs:annotation>
+			<xs:documentation>Options contract (call or put) derived from DerivativeInstrumentPET.</xs:documentation>
+		</xs:annotation>
+		<xs:complexContent>
+			<xs:extension base="fm:DerivativeInstrumentPET">
+				<xs:sequence>
+					<xs:element name="OptionKind" type="xs:string"/>
+					<xs:element name="StrikePrice" type="fm:MonetaryAmountType"/>
+				</xs:sequence>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType name="FutureType" fm:version="001.000.000">
+		<xs:annotation>
+			<xs:documentation>Futures contract derived from DerivativeInstrumentPET.</xs:documentation>
+		</xs:annotation>
+		<xs:complexContent>
+			<xs:extension base="fm:DerivativeInstrumentPET">
+				<xs:sequence>
+					<xs:element name="DeliveryDate" type="xs:date" minOccurs="0"/>
+					<xs:element name="SettlementMethod" type="xs:string" minOccurs="0"/>
+				</xs:sequence>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<!--== PET: PartyPET — concrete subtypes: IndividualPartyType, InstitutionalPartyType ==-->
+	<xs:complexType name="PartyPET" abstract="true" fm:version="001.000.000">
+		<xs:annotation>
+			<xs:documentation>Abstract base for all counterparty representations.
+Use xsi:type to supply IndividualPartyType or InstitutionalPartyType.</xs:documentation>
+		</xs:annotation>
+		<xs:sequence>
+			<xs:element name="PartyId" type="fm:IdentifierTokenType"/>
+			<xs:element name="LegalEntityIdentifier" type="xs:string" minOccurs="0"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="IndividualPartyType" fm:version="001.000.000">
+		<xs:annotation>
+			<xs:documentation>A natural person acting as a counterparty.</xs:documentation>
+		</xs:annotation>
+		<xs:complexContent>
+			<xs:extension base="fm:PartyPET">
+				<xs:sequence>
+					<xs:element name="GivenName" type="xs:string"/>
+					<xs:element name="FamilyName" type="xs:string"/>
+					<xs:element name="NationalIdentifier" type="xs:string" minOccurs="0"/>
+				</xs:sequence>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType name="InstitutionalPartyType" fm:version="001.000.000">
+		<xs:annotation>
+			<xs:documentation>A legal entity (bank, fund, broker) acting as a counterparty.</xs:documentation>
+		</xs:annotation>
+		<xs:complexContent>
+			<xs:extension base="fm:PartyPET">
+				<xs:sequence>
+					<xs:element name="LegalName" type="xs:string"/>
+					<xs:element name="RegistrationCountry" type="xs:string" minOccurs="0"/>
+					<xs:element name="RegulatoryStatus" type="fm:RegulatoryStatusType" minOccurs="0"/>
+				</xs:sequence>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<!--== PET: PaymentInstructionPET — concrete subtypes: WireTransferType, BookTransferType ==-->
+	<xs:complexType name="PaymentInstructionPET" abstract="true" fm:version="001.000.000">
+		<xs:annotation>
+			<xs:documentation>Abstract base for payment instructions attached to a settlement.
+Use xsi:type to supply WireTransferType or BookTransferType.</xs:documentation>
+		</xs:annotation>
+		<xs:sequence>
+			<xs:element name="PaymentId" type="xs:string"/>
+			<xs:element name="ValueDate" type="xs:date"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="WireTransferType" fm:version="001.000.000">
+		<xs:annotation>
+			<xs:documentation>SWIFT wire transfer payment instruction.</xs:documentation>
+		</xs:annotation>
+		<xs:complexContent>
+			<xs:extension base="fm:PaymentInstructionPET">
+				<xs:sequence>
+					<xs:element name="SWIFTCode" type="xs:string"/>
+					<xs:element name="AccountNumber" type="xs:string"/>
+					<xs:element name="CorrespondentBank" type="xs:string" minOccurs="0"/>
+				</xs:sequence>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<xs:complexType name="BookTransferType" fm:version="001.000.000">
+		<xs:annotation>
+			<xs:documentation>Internal book transfer between accounts held at the same institution.</xs:documentation>
+		</xs:annotation>
+		<xs:complexContent>
+			<xs:extension base="fm:PaymentInstructionPET">
+				<xs:sequence>
+					<xs:element name="DebitAccountId" type="xs:string"/>
+					<xs:element name="CreditAccountId" type="xs:string"/>
+				</xs:sequence>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<!--== SUPPORTING SIMPLE TYPES ==-->
+	<xs:simpleType name="OrderSideType" fm:version="001.000.000">
+		<xs:annotation>
+			<xs:documentation>Direction of a trade order.</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="BUY"/>
+			<xs:enumeration value="SELL"/>
+			<xs:enumeration value="SELL_SHORT"/>
+			<xs:enumeration value="BUY_TO_COVER"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="OrderSideListType" fm:version="001.000.000">
+		<xs:annotation>
+			<xs:documentation>Space-separated list of OrderSideType values (xs:list).
+Used when a single instruction covers multiple order sides.</xs:documentation>
+		</xs:annotation>
+		<xs:list itemType="fm:OrderSideType"/>
+	</xs:simpleType>
+	<xs:simpleType name="IdentifierOrUnknownType" fm:version="001.000.000">
+		<xs:annotation>
+			<xs:documentation>Union that accepts either a typed IdentifierTokenType or the literal string
+"UNKNOWN" when the counterparty identifier has not yet been resolved (xs:union).</xs:documentation>
+		</xs:annotation>
+		<xs:union memberTypes="fm:IdentifierTokenType xs:string"/>
+	</xs:simpleType>
+	<!--== ROOT ELEMENT COMPLEX TYPES ==-->
+	<xs:complexType name="OrderType" fm:version="001.000.000">
+		<xs:annotation>
+			<xs:documentation>A trade order for a financial instrument.
+Instrument uses InstrumentPET (PET hierarchy includes derivatives via DerivativeInstrumentPET).
+Counterparty uses PartyPET; supply xsi:type for individual or institutional parties.</xs:documentation>
+		</xs:annotation>
+		<xs:sequence>
+			<xs:group ref="fm:MessageHeaderGroup"/>
+			<xs:element name="OrderSide" type="fm:OrderSideType"/>
+			<xs:element name="AllowedSides" type="fm:OrderSideListType" minOccurs="0"/>
+			<xs:element name="Instrument" type="fm:InstrumentPET"/>
+			<xs:element name="Quantity" type="xs:decimal"/>
+			<xs:element name="LimitPrice" type="fm:MonetaryAmountType" minOccurs="0"/>
+			<xs:element name="Counterparty" type="fm:PartyPET" minOccurs="0"/>
+			<xs:element name="CounterpartyRef" type="fm:IdentifierOrUnknownType" minOccurs="0"/>
+		</xs:sequence>
+		<xs:attributeGroup ref="fm:VersionedAttrs"/>
+	</xs:complexType>
+	<xs:complexType name="SettlementType" fm:version="001.000.000">
+		<xs:annotation>
+			<xs:documentation>A settlement instruction for a confirmed trade.
+PaymentInstruction uses PaymentInstructionPET; supply xsi:type for wire or book transfer.</xs:documentation>
+		</xs:annotation>
+		<xs:sequence>
+			<xs:group ref="fm:MessageHeaderGroup"/>
+			<xs:element name="OrderRef" type="xs:string"/>
+			<xs:element name="Instrument" type="fm:InstrumentPET"/>
+			<xs:element name="SettledQuantity" type="xs:decimal"/>
+			<xs:element name="SettledPrice" type="fm:MonetaryAmountType"/>
+			<xs:element name="Buyer" type="fm:PartyPET"/>
+			<xs:element name="Seller" type="fm:PartyPET"/>
+			<xs:element name="PaymentInstruction" type="fm:PaymentInstructionPET" minOccurs="0" maxOccurs="unbounded"/>
+		</xs:sequence>
+		<xs:attributeGroup ref="fm:VersionedAttrs"/>
+	</xs:complexType>
+	<!--== ROOT ELEMENTS ==-->
+	<xs:element name="Order" type="fm:OrderType" fm:version="001.000.000"/>
+	<xs:element name="Settlement" type="fm:SettlementType" fm:version="001.000.000"/>
+</xs:schema>

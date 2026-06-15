@@ -27,6 +27,8 @@ public class XsdExtractor {
     private final Map<String, Document> parsedSchemas = new LinkedHashMap<>();
     private final Map<String, String> sourceContents = new LinkedHashMap<>();
     private final Map<ComponentRef, ComponentInfo> registry = new HashMap<>();
+    /** Maps each type to the set of types that directly extend or restrict it. */
+    private final Map<ComponentRef, Set<ComponentRef>> subtypeMap = new HashMap<>();
 
     public XsdExtractor(SchemaResolver schemaResolver) {
         this.schemaResolver = schemaResolver;
@@ -128,6 +130,9 @@ public class XsdExtractor {
             registerComponents(entry.getValue(), entry.getKey());
         }
 
+        // 2b. Build reverse inheritance map so abstract PETs can pull in their subtypes
+        buildSubtypeMap();
+
         if (mergeRootElementsIntoSingleSchema) {
             extractSubset(mainSchemaPath, outputDir, rootElements, null, schemaVersion);
         } else {
@@ -173,6 +178,19 @@ public class XsdExtractor {
                         queue.add(ref);
                     }
                 });
+
+                // If this is an abstract type (PET), also pull in every type that directly
+                // extends or restricts it. Those subtypes are themselves processed by the BFS,
+                // so nested abstract PETs are handled automatically.
+                if ("true".equals(info.element().getAttribute("abstract"))) {
+                    Set<ComponentRef> subs = subtypeMap.getOrDefault(current, Collections.emptySet());
+                    for (ComponentRef sub : subs) {
+                        if (registry.containsKey(sub) && !needed.contains(sub)) {
+                            needed.add(sub);
+                            queue.add(sub);
+                        }
+                    }
+                }
             }
         }
 
@@ -458,6 +476,37 @@ public class XsdExtractor {
 
         for (Node child = node.getFirstChild(); child != null; child = child.getNextSibling()) {
             findReferences(child, callback);
+        }
+    }
+
+    /**
+     * Populates {@link #subtypeMap} by scanning every registered TYPE for xs:extension/xs:restriction
+     * declarations, then recording that the extending type is a subtype of the base type.
+     */
+    private void buildSubtypeMap() {
+        for (Map.Entry<ComponentRef, ComponentInfo> entry : registry.entrySet()) {
+            ComponentRef ref = entry.getKey();
+            if (ref.type() != ComponentType.TYPE) continue;
+            ComponentInfo info = entry.getValue();
+            if (info.element() == null) continue;
+
+            findBaseTypeRefs(info.element(), baseRef -> {
+                subtypeMap.computeIfAbsent(baseRef, k -> new HashSet<>()).add(ref);
+            });
+        }
+    }
+
+    /** Traverses a node tree looking only at xs:extension/xs:restriction base attributes. */
+    private void findBaseTypeRefs(Node node, Consumer<ComponentRef> callback) {
+        if (node.getNodeType() == Node.ELEMENT_NODE) {
+            Element el = (Element) node;
+            String localName = el.getLocalName();
+            if ("extension".equals(localName) || "restriction".equals(localName)) {
+                checkAttributeRef(el, "base", ComponentType.TYPE, callback);
+            }
+        }
+        for (Node child = node.getFirstChild(); child != null; child = child.getNextSibling()) {
+            findBaseTypeRefs(child, callback);
         }
     }
 
