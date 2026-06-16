@@ -6,7 +6,7 @@ plugins {
 mavenPublishing {
     publishToMavenCentral()
     signAllPublications()
-    coordinates('com.wxbrew', 'xsd-schema-subset-extractor', '1.0.0')
+    coordinates('com.wxbrew', 'xsd-schema-subset-extractor', project.version)
 
     pom {
         name = 'XSD Schema Subset Extractor'

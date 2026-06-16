@@ -6,7 +6,7 @@
 
     <groupId>com.wxbrew</groupId>
     <artifactId>xsd-schema-subset-extractor-maven-plugin</artifactId>
-    <version>1.0.0</version>
+    <version>1.0.1</version>
     <packaging>maven-plugin</packaging>
 
     <name>XSD Schema Subset Extractor Maven Plugin</name>
@@ -23,7 +23,7 @@
     <developers>
         <developer>
             <id>wxbrew</id>
-            <name>M Dawson</name>
+            <name>Matthew Dawson</name>
             <email>md@wxbrew.com</email>
         </developer>
     </developers>

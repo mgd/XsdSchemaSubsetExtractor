@@ -5,7 +5,6 @@ plugins {
 }
 
 group = 'com.wxbrew'
-version = '1.0.0'
 
 dependencies {
     implementation project(':core')
@@ -23,7 +22,7 @@ gradlePlugin {
 mavenPublishing {
     publishToMavenCentral()
     signAllPublications()
-    coordinates('com.wxbrew', 'xsd-schema-subset-extractor-gradle-plugin', '1.0.0')
+    coordinates('com.wxbrew', 'xsd-schema-subset-extractor-gradle-plugin', project.version)
 
     pom {
         name = 'XSD Schema Subset Extractor Gradle Plugin'
