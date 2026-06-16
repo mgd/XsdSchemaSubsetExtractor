@@ -47,7 +47,7 @@
         <dependency>
             <groupId>com.wxbrew</groupId>
             <artifactId>xsd-schema-subset-extractor</artifactId>
-            <version>1.0.0</version>
+            <version>${project.version}</version>
         </dependency>
 
         <!-- Maven plugin API — provided by the Maven runtime -->
