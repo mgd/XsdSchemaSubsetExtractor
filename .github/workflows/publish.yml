@@ -12,53 +12,41 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
-      # Java + Maven settings.xml wired to Central Portal credentials
-      - uses: actions/setup-java@v5
+      - name: Publish
+        uses: devcontainers/ci@0.3
         with:
-          java-version: '21'
-          distribution: 'temurin'
-          cache: 'gradle'
-          server-id: central
-          server-username: MAVEN_CENTRAL_USERNAME
-          server-password: MAVEN_CENTRAL_TOKEN
+          imageName: ghcr.io/wxbrew/devcontainers/java-gradle-mvn-claude
+          imageTag: latest
+          push: never
+          runCmd: |
+            # Import GPG signing key
+            echo "$GPG_PRIVATE_KEY" | gpg --batch --import
 
-      - name: Verify secrets are present
-        run: |
-          [ -n "$MAVEN_CENTRAL_USERNAME" ] && echo "MAVEN_CENTRAL_USERNAME: set" || echo "MAVEN_CENTRAL_USERNAME: MISSING"
-          [ -n "$MAVEN_CENTRAL_TOKEN" ] && echo "MAVEN_CENTRAL_TOKEN: set" || echo "MAVEN_CENTRAL_TOKEN: MISSING"
-          [ -n "$GPG_PRIVATE_KEY" ] && echo "GPG_PRIVATE_KEY: set" || echo "GPG_PRIVATE_KEY: MISSING"
-          [ -n "$GPG_PASSPHRASE" ] && echo "GPG_PASSPHRASE: set" || echo "GPG_PASSPHRASE: MISSING"
-        env:
-          MAVEN_CENTRAL_USERNAME: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
-          MAVEN_CENTRAL_TOKEN: ${{ secrets.MAVEN_CENTRAL_TOKEN }}
-          GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
-          GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
+            # Write Maven settings with Central Portal and GPG passphrase credentials
+            mkdir -p ~/.m2
+            cat > ~/.m2/settings.xml << 'EOF'
+            <settings>
+              <servers>
+                <server>
+                  <id>central</id>
+                  <username>${env.MAVEN_CENTRAL_USERNAME}</username>
+                  <password>${env.MAVEN_CENTRAL_TOKEN}</password>
+                </server>
+                <server>
+                  <id>gpg.passphrase</id>
+                  <passphrase>${env.GPG_PASSPHRASE}</passphrase>
+                </server>
+              </servers>
+            </settings>
+            EOF
 
-      # Import GPG key into the system keyring (used by both Gradle and Maven signing)
-      - name: Import GPG key
-        uses: crazy-max/ghaction-import-gpg@v6
-        with:
-          gpg_private_key: ${{ secrets.GPG_PRIVATE_KEY }}
-          passphrase: ${{ secrets.GPG_PASSPHRASE }}
-
-      # Publish core and plugin to Maven Central via vanniktech
-      - name: Publish Gradle modules to Maven Central
-        run: ./gradlew publishAndReleaseToMavenCentral
+            ./gradlew publishAndReleaseToMavenCentral
+            ./gradlew :core:publishToMavenLocal
+            cd maven-plugin && mvn deploy -B --no-transfer-progress
         env:
           MAVEN_CENTRAL_USERNAME: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
           MAVEN_CENTRAL_TOKEN: ${{ secrets.MAVEN_CENTRAL_TOKEN }}
           ORG_GRADLE_PROJECT_mavenCentralUsername: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
           ORG_GRADLE_PROJECT_mavenCentralPassword: ${{ secrets.MAVEN_CENTRAL_TOKEN }}
-
-      # Install core locally so the Maven plugin can build against it
-      - name: Install core to local Maven repo
-        run: ./gradlew :core:publishToMavenLocal
-
-      # Publish Maven plugin (central-publishing-maven-plugin handles the upload;
-      # maven-gpg-plugin uses the key imported by crazy-max/ghaction-import-gpg above)
-      - name: Publish Maven plugin to Maven Central
-        run: cd maven-plugin && mvn deploy -B --no-transfer-progress
-        env:
-          MAVEN_CENTRAL_USERNAME: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
-          MAVEN_CENTRAL_TOKEN: ${{ secrets.MAVEN_CENTRAL_TOKEN }}
+          GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
           GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}

@@ -13,17 +13,13 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
-      - uses: actions/setup-java@v5
+      - name: Build and test
+        uses: devcontainers/ci@0.3
         with:
-          java-version: '21'
-          distribution: 'temurin'
-          cache: 'gradle'
-
-      - name: Build and test Gradle modules
-        run: ./gradlew build
-
-      - name: Publish core to local Maven repo (required for Maven plugin build)
-        run: ./gradlew :core:publishToMavenLocal
-
-      - name: Build and verify Maven plugin
-        run: cd maven-plugin && mvn verify -B --no-transfer-progress -Dgpg.skip=true
+          imageName: ghcr.io/wxbrew/devcontainers/java-gradle-mvn-claude
+          imageTag: latest
+          push: never
+          runCmd: |
+            ./gradlew build
+            ./gradlew :core:publishToMavenLocal
+            cd maven-plugin && mvn verify -B --no-transfer-progress -Dgpg.skip=true
