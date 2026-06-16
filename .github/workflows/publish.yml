@@ -22,6 +22,18 @@ jobs:
           server-username: MAVEN_CENTRAL_USERNAME
           server-password: MAVEN_CENTRAL_TOKEN
 
+      - name: Verify secrets are present
+        run: |
+          [ -n "$MAVEN_CENTRAL_USERNAME" ] && echo "MAVEN_CENTRAL_USERNAME: set" || echo "MAVEN_CENTRAL_USERNAME: MISSING"
+          [ -n "$MAVEN_CENTRAL_TOKEN" ] && echo "MAVEN_CENTRAL_TOKEN: set" || echo "MAVEN_CENTRAL_TOKEN: MISSING"
+          [ -n "$GPG_PRIVATE_KEY" ] && echo "GPG_PRIVATE_KEY: set" || echo "GPG_PRIVATE_KEY: MISSING"
+          [ -n "$GPG_PASSPHRASE" ] && echo "GPG_PASSPHRASE: set" || echo "GPG_PASSPHRASE: MISSING"
+        env:
+          MAVEN_CENTRAL_USERNAME: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
+          MAVEN_CENTRAL_TOKEN: ${{ secrets.MAVEN_CENTRAL_TOKEN }}
+          GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
+          GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
+
       # Import GPG key into the system keyring (used by both Gradle and Maven signing)
       - name: Import GPG key
         uses: crazy-max/ghaction-import-gpg@v6

@@ -1,5 +1,8 @@
 # XSD Extractor Gradle Plugin (`:plugin`)
 
+**Plugin ID:** `com.wxbrew.schema-extractor`  
+**Maven Central:** `com.wxbrew:xsd-schema-subset-extractor-gradle-plugin:1.0.0`
+
 The Gradle Plugin integrates the Core library into any Gradle project to automate XSD subset
 extraction during the build.
 

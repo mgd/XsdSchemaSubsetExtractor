@@ -23,6 +23,7 @@ gradlePlugin {
 mavenPublishing {
     publishToMavenCentral()
     signAllPublications()
+    coordinates('com.wxbrew', 'xsd-schema-subset-extractor-gradle-plugin', '1.0.0')
 
     pom {
         name = 'XSD Schema Subset Extractor Gradle Plugin'

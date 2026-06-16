@@ -6,9 +6,10 @@ plugins {
 mavenPublishing {
     publishToMavenCentral()
     signAllPublications()
+    coordinates('com.wxbrew', 'xsd-schema-subset-extractor', '1.0.0')
 
     pom {
-        name = 'XSD Schema Subset Extractor Core'
+        name = 'XSD Schema Subset Extractor'
         description = 'Core library to extract minimal, self-contained XML Schema (XSD) files from a larger schema definition.'
         url = 'https://github.com/wxbrew/XsdSchemaSubsetExtractor'
         inceptionYear = '2026'

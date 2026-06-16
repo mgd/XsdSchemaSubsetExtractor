@@ -7,7 +7,7 @@ XSD subset extraction into any Maven build.
 
 ## Prerequisites
 
-The `core` library must be in your local Maven repository before building this plugin:
+The `xsd-schema-subset-extractor` core library must be in your local Maven repository before building this plugin:
 
 ```bash
 # From the repo root

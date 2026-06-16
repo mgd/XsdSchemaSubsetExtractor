@@ -46,7 +46,7 @@
              ./gradlew :core:publishToMavenLocal -->
         <dependency>
             <groupId>com.wxbrew</groupId>
-            <artifactId>core</artifactId>
+            <artifactId>xsd-schema-subset-extractor</artifactId>
             <version>1.0.0</version>
         </dependency>
 

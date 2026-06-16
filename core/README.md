@@ -1,8 +1,26 @@
 # XSD Extractor Core Library (`:core`)
 
+**Maven Central:** `com.wxbrew:xsd-schema-subset-extractor:1.0.0`
+
 The Core module is a standalone Java 21 library that parses XML Schema (XSD) files, resolves
 relative includes/imports, traces element and type dependencies, and writes minimal self-contained
 subset schemas.
+
+## Adding as a Dependency
+
+**Gradle:**
+```groovy
+implementation 'com.wxbrew:xsd-schema-subset-extractor:1.0.0'
+```
+
+**Maven:**
+```xml
+<dependency>
+    <groupId>com.wxbrew</groupId>
+    <artifactId>xsd-schema-subset-extractor</artifactId>
+    <version>1.0.0</version>
+</dependency>
+```
 
 ## Features
 
