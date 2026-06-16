@@ -5,9 +5,15 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
+/** {@link SchemaResolver} that resolves schema locations against the local filesystem. */
 public class FileSystemSchemaResolver implements SchemaResolver {
     private final File baseDir;
 
+    /**
+     * Creates a resolver that looks up schemas relative to {@code baseDir}.
+     *
+     * @param baseDir the root directory containing the schema files
+     */
     public FileSystemSchemaResolver(File baseDir) {
         this.baseDir = baseDir;
     }

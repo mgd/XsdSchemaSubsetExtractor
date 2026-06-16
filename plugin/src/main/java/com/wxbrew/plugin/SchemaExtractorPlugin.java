@@ -3,7 +3,12 @@ package com.wxbrew.plugin;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 
+/** Gradle plugin that registers the {@code extractXsdSubset} task. */
 public class SchemaExtractorPlugin implements Plugin<Project> {
+
+    /** Creates the plugin instance. */
+    public SchemaExtractorPlugin() {}
+
     @Override
     public void apply(Project project) {
         SchemaExtractorExtension extension = project.getExtensions().create("schemaExtractor", SchemaExtractorExtension.class);

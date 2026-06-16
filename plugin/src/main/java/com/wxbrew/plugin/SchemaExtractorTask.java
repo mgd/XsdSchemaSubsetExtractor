@@ -17,34 +17,46 @@ import org.gradle.api.tasks.TaskAction;
 import java.io.File;
 import java.util.List;
 
+/** Gradle task that invokes {@link XsdExtractor} to produce a minimal XSD subset. */
 public abstract class SchemaExtractorTask extends DefaultTask {
 
+    /** Creates the task instance. */
+    public SchemaExtractorTask() {}
+
+    /** {@return the entry-point schema file; takes precedence over schema name/version when set} */
     @InputFile
     @Optional
     public abstract RegularFileProperty getMainSchema();
 
+    /** {@return the base name of the entry-point schema (without version suffix or {@code .xsd})} */
     @Input
     @Optional
     public abstract Property<String> getSchemaName();
 
+    /** {@return the version string used to locate the file: {@code <name>_v<version>.xsd}} */
     @Input
     @Optional
     public abstract Property<String> getSchemaVersion();
 
+    /** {@return the directory containing all source schema files} */
     @InputDirectory
     @Optional
     public abstract DirectoryProperty getSchemaDir();
 
+    /** {@return the directory where extracted output files are written} */
     @OutputDirectory
     public abstract DirectoryProperty getOutputDir();
 
+    /** {@return the root element names to extract; each produces its own output file in split mode} */
     @Input
     public abstract ListProperty<String> getRootElements();
 
+    /** {@return true when all root elements should be merged into one output file} */
     @Input
     @Optional
     public abstract Property<Boolean> getMergeRootElementsIntoSingleSchema();
 
+    /** Runs the XSD subset extraction. */
     @TaskAction
     public void executeExtraction() {
         File mainSchemaFile = getMainSchema().isPresent() ? getMainSchema().get().getAsFile() : null;

@@ -8,7 +8,17 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+/** Command-line entry point for the XSD schema subset extractor. */
 public class App {
+
+    /** Creates the application instance. */
+    public App() {}
+
+    /**
+     * Parses command-line arguments and runs the schema extraction.
+     *
+     * @param args command-line arguments; run with {@code --help} for usage
+     */
     public static void main(String[] args) {
         String mainSchema = null;
         String outputDir = null;

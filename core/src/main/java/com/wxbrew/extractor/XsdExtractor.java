@@ -13,14 +13,37 @@ import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.function.Consumer;
 
+/** Extracts a minimal, self-contained XSD subset containing only the types reachable from specified root elements. */
 public class XsdExtractor {
 
+    /** Classifies a top-level XSD schema component. */
     public enum ComponentType {
-        ELEMENT, TYPE, GROUP, ATTRIBUTE_GROUP, ATTRIBUTE
+        /** xs:element declaration. */
+        ELEMENT,
+        /** xs:complexType or xs:simpleType declaration. */
+        TYPE,
+        /** xs:group declaration. */
+        GROUP,
+        /** xs:attributeGroup declaration. */
+        ATTRIBUTE_GROUP,
+        /** xs:attribute declaration. */
+        ATTRIBUTE
     }
 
+    /**
+     * Identifies a named top-level component within a schema.
+     *
+     * @param type  the kind of schema component
+     * @param qName the qualified name of the component
+     */
     public record ComponentRef(ComponentType type, QName qName) {}
 
+    /**
+     * Associates a parsed DOM element with the schema file it came from.
+     *
+     * @param element  the DOM element representing the component
+     * @param systemId the absolute path of the source schema file
+     */
     public record ComponentInfo(Element element, String systemId) {}
 
     private final SchemaResolver schemaResolver;
@@ -30,10 +53,22 @@ public class XsdExtractor {
     /** Maps each type to the set of types that directly extend or restrict it. */
     private final Map<ComponentRef, Set<ComponentRef>> subtypeMap = new HashMap<>();
 
+    /**
+     * Creates an extractor backed by the given schema resolver.
+     *
+     * @param schemaResolver resolver used to locate and read schema files
+     */
     public XsdExtractor(SchemaResolver schemaResolver) {
         this.schemaResolver = schemaResolver;
     }
 
+    /**
+     * Returns the filename for a schema given its name and version.
+     *
+     * @param schemaName    the base schema name
+     * @param schemaVersion the version string, or null/empty for no version suffix
+     * @return the resolved filename (e.g. {@code MySchema.xsd})
+     */
     public static String getXsdFilename(String schemaName, String schemaVersion) {
         return schemaName + ".xsd";
     }
@@ -61,6 +96,18 @@ public class XsdExtractor {
         }
     }
 
+    /**
+     * Extracts an XSD subset starting from the given root elements.
+     *
+     * @param mainSchema                     the entry-point schema file, or null to derive from name/version
+     * @param schemaName                     base name of the schema (used when mainSchema is null)
+     * @param schemaVersion                  version string used to locate the file, or null
+     * @param schemaDir                      directory containing all source schema files, or null to infer
+     * @param outputDir                      directory to write the extracted output files
+     * @param rootElements                   names of the root xs:elements to extract
+     * @param mergeRootElementsIntoSingleSchema true to produce one merged file; false to split by root element
+     * @throws Exception if parsing or writing fails
+     */
     public void extract(
             File mainSchema,
             String schemaName,
@@ -103,6 +150,17 @@ public class XsdExtractor {
         extract(resolvedSchemaDir.getAbsolutePath(), resolvedName, resolvedVersion, outputDir, rootElements, mergeRootElementsIntoSingleSchema);
     }
 
+    /**
+     * Extracts an XSD subset by schema directory path and name.
+     *
+     * @param schemaDir                      path to the directory containing all source schema files
+     * @param schemaName                     base name of the entry-point schema file
+     * @param schemaVersion                  version string used to locate the file, or null
+     * @param outputDir                      directory to write the extracted output files
+     * @param rootElements                   names of the root xs:elements to extract
+     * @param mergeRootElementsIntoSingleSchema true to produce one merged file; false to split by root element
+     * @throws Exception if parsing or writing fails
+     */
     public void extract(
             String schemaDir,
             String schemaName,
