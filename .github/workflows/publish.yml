@@ -18,6 +18,13 @@ jobs:
           imageName: ghcr.io/wxbrew/devcontainers/java-gradle-mvn-claude
           imageTag: latest
           push: never
+          env: |
+            MAVEN_CENTRAL_USERNAME=${{ secrets.MAVEN_CENTRAL_USERNAME }}
+            MAVEN_CENTRAL_TOKEN=${{ secrets.MAVEN_CENTRAL_TOKEN }}
+            ORG_GRADLE_PROJECT_mavenCentralUsername=${{ secrets.MAVEN_CENTRAL_USERNAME }}
+            ORG_GRADLE_PROJECT_mavenCentralPassword=${{ secrets.MAVEN_CENTRAL_TOKEN }}
+            GPG_PRIVATE_KEY=${{ secrets.GPG_PRIVATE_KEY }}
+            GPG_PASSPHRASE=${{ secrets.GPG_PASSPHRASE }}
           runCmd: |
             # Import GPG signing key
             echo "$GPG_PRIVATE_KEY" | gpg --batch --import
@@ -43,10 +50,3 @@ jobs:
             ./gradlew publishAndReleaseToMavenCentral
             ./gradlew :core:publishToMavenLocal
             cd maven-plugin && mvn deploy -B --no-transfer-progress
-        env:
-          MAVEN_CENTRAL_USERNAME: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
-          MAVEN_CENTRAL_TOKEN: ${{ secrets.MAVEN_CENTRAL_TOKEN }}
-          ORG_GRADLE_PROJECT_mavenCentralUsername: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
-          ORG_GRADLE_PROJECT_mavenCentralPassword: ${{ secrets.MAVEN_CENTRAL_TOKEN }}
-          GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
-          GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
