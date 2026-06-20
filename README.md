@@ -199,7 +199,7 @@ See [core/README.md](core/README.md) for API details.
 
 - `.devcontainer/devcontainer.json` installs Java 25, Gradle, Maven, and GitHub CLI, but does **not** install Node/npm or Claude Code.
 - `.devcontainer/claude/devcontainer.json` preserves the existing `ghcr.io/wxbrew/devcontainers/java-gradle-mvn-claude:latest` image.
-- GitHub Actions already use the Claude-enabled image directly in workflow YAML, so CI and release automation remain unchanged.
+- GitHub Actions CI now installs Temurin JDK 25 explicitly before running the Gradle and Maven validation steps.
 - Configure branch protection for `java/dev/claude-devcontainer` in the repository settings.
 
 ---
@@ -221,5 +221,5 @@ On pushes to `main`, the workflow also syncs open SonarQube findings into groupe
 
 ## Requirements
 
-- **Java**: JDK 21 or higher
+- **Java**: JDK 25
 - **Gradle**: 9.0 or higher (wrapper included)
