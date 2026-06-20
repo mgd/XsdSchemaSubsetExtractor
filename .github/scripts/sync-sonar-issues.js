@@ -91,7 +91,7 @@ function groupIssues(issues) {
     return groups;
 }
 
-function escapeForAttribute(value) {
+function escapeForHtmlComment(value) {
     return value.replace(/"/g, '&quot;');
 }
 
@@ -100,7 +100,11 @@ function issueTitle(group) {
 }
 
 function formatFindingCount(count) {
-    return `${count} open finding${count === 1 ? '' : 's'}`;
+    return `${count} open ${formatFindingWord(count)}`;
+}
+
+function formatFindingWord(count) {
+    return `finding${count === 1 ? '' : 's'}`;
 }
 
 function issueBody(baseUrl, projectKey, group) {
@@ -135,12 +139,12 @@ function issueBody(baseUrl, projectKey, group) {
         .join('\n');
 
     const omittedSummary = hiddenCount > 0
-        ? `\n\n_Only the first ${MAX_FINDINGS_PER_ISSUE} findings are shown here. ${hiddenCount} additional finding${hiddenCount === 1 ? '' : 's'} remain open in SonarQube._`
+        ? `\n\n_Only the first ${MAX_FINDINGS_PER_ISSUE} findings are shown here. ${hiddenCount} additional ${formatFindingWord(hiddenCount)} remain open in SonarQube._`
         : '';
 
     return [
         `<!-- ${MANAGED_MARKER} -->`,
-        `<!-- ${GROUP_MARKER_PREFIX}${escapeForAttribute(group.key)} -->`,
+        `<!-- ${GROUP_MARKER_PREFIX}${escapeForHtmlComment(group.key)} -->`,
         `# ${group.rule}`,
         '',
         `- **Type:** ${group.type}`,
@@ -161,7 +165,7 @@ function extractGroupKey(body = '') {
     return match?.[1];
 }
 
-function isIssueNotPullRequest(issue) {
+function isIssue(issue) {
     return issue.pull_request === undefined;
 }
 
@@ -192,7 +196,7 @@ module.exports = async function syncSonarIssues({ core, github, context }) {
 
     const managedIssues = new Map(
         existingIssues
-            .filter((issue) => isIssueNotPullRequest(issue) && issue.body?.includes(MANAGED_MARKER))
+            .filter((issue) => isIssue(issue) && issue.body?.includes(MANAGED_MARKER))
             .map((issue) => [extractGroupKey(issue.body), issue])
             .filter(([groupKey]) => groupKey)
     );
