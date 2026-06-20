@@ -32,7 +32,6 @@ async function ensureLabels(github, owner, repo) {
 }
 
 async function fetchSonarIssues(baseUrl, sonarToken, projectKey) {
-    const encodedToken = Buffer.from(`${sonarToken}:`).toString('base64');
     const issues = [];
     let page = 1;
     let total = 0;
@@ -46,7 +45,7 @@ async function fetchSonarIssues(baseUrl, sonarToken, projectKey) {
 
         const response = await fetch(url, {
             headers: {
-                Authorization: `Basic ${encodedToken}`,
+                Authorization: 'Bearer ' + sonarToken,
                 Accept: 'application/json'
             }
         });
@@ -56,8 +55,17 @@ async function fetchSonarIssues(baseUrl, sonarToken, projectKey) {
         }
 
         const payload = await response.json();
+        if (!Array.isArray(payload.issues)) {
+            throw new Error('SonarQube API response did not include an issues array.');
+        }
+
+        const responseTotal = payload.paging?.total ?? payload.total;
+        if (typeof responseTotal !== 'number') {
+            throw new Error('SonarQube API response did not include a total issue count.');
+        }
+
         issues.push(...payload.issues);
-        total = payload.total ?? issues.length;
+        total = responseTotal;
         page += 1;
     } while (issues.length < total);
 
@@ -100,6 +108,10 @@ function issueBody(baseUrl, projectKey, group) {
 
         return (left.line ?? 0) - (right.line ?? 0);
     });
+    const firstIssue = sortedIssues[0];
+    if (!firstIssue) {
+        throw new Error(`Cannot build a backlog issue for empty SonarQube group ${group.key}.`);
+    }
     const visibleIssues = sortedIssues.slice(0, MAX_FINDINGS_PER_ISSUE);
     const hiddenCount = sortedIssues.length - visibleIssues.length;
 
@@ -131,7 +143,7 @@ function issueBody(baseUrl, projectKey, group) {
         `- **Severity:** ${group.severity}`,
         `- **Open findings:** ${sortedIssues.length}`,
         `- **Project:** \`${projectKey}\``,
-        `- **SonarQube view:** ${new URL(`/project/issues?id=${projectKey}&open=${group.issues[0].key}`, baseUrl).toString()}`,
+        `- **SonarQube view:** ${new URL(`/project/issues?id=${projectKey}&open=${firstIssue.key}`, baseUrl).toString()}`,
         '',
         'These findings were grouped automatically so GitHub backlog work can address repeated SonarQube problems together.',
         '',
@@ -143,6 +155,10 @@ function issueBody(baseUrl, projectKey, group) {
 function extractGroupKey(body = '') {
     const match = body.match(new RegExp(`<!-- ${GROUP_MARKER_PREFIX}([^>]+) -->`));
     return match?.[1];
+}
+
+function isRepositoryIssue(issue) {
+    return issue.pull_request === undefined;
 }
 
 module.exports = async function syncSonarIssues({ core, github, context }) {
@@ -172,7 +188,7 @@ module.exports = async function syncSonarIssues({ core, github, context }) {
 
     const managedIssues = new Map(
         existingIssues
-            .filter((issue) => issue.pull_request == null && issue.body?.includes(MANAGED_MARKER))
+            .filter((issue) => isRepositoryIssue(issue) && issue.body?.includes(MANAGED_MARKER))
             .map((issue) => [extractGroupKey(issue.body), issue])
             .filter(([groupKey]) => groupKey)
     );
