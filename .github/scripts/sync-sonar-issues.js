@@ -34,18 +34,18 @@ async function ensureLabels(github, owner, repo) {
 async function fetchSonarIssues(baseUrl, sonarToken, projectKey) {
     const issues = [];
     let page = 1;
-    let total = 0;
 
-    do {
+    while (true) {
         const url = new URL('/api/issues/search', baseUrl);
         url.searchParams.set('componentKeys', projectKey);
         url.searchParams.set('statuses', 'OPEN,REOPENED');
         url.searchParams.set('ps', String(MAX_PAGE_SIZE));
         url.searchParams.set('p', String(page));
 
+        const credentials = Buffer.from(sonarToken + ':').toString('base64');
         const response = await fetch(url, {
             headers: {
-                Authorization: 'Bearer ' + sonarToken,
+                Authorization: 'Basic ' + credentials,
                 Accept: 'application/json'
             }
         });
@@ -59,15 +59,19 @@ async function fetchSonarIssues(baseUrl, sonarToken, projectKey) {
             throw new Error('SonarQube API response did not include an issues array.');
         }
 
-        const responseTotal = payload.paging?.total ?? payload.total;
-        if (typeof responseTotal !== 'number') {
-            throw new Error('SonarQube API response did not include a total issue count.');
+        if (payload.issues.length === 0) {
+            break;
         }
 
         issues.push(...payload.issues);
-        total = responseTotal;
+
+        const responseTotal = payload.paging?.total ?? payload.total;
+        if (typeof responseTotal !== 'number' || issues.length >= responseTotal) {
+            break;
+        }
+
         page += 1;
-    } while (issues.length < total);
+    }
 
     return issues;
 }
