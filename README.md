@@ -194,7 +194,7 @@ See [core/README.md](core/README.md) for API details.
 
 The GitHub Actions CI workflow now runs a SonarQube/SonarCloud scan after the existing build and test steps whenever the `SONAR_TOKEN` repository secret is configured.
 
-Set these repository variables if you need values different from the defaults:
+Set this repository secret and, if needed, these repository variables:
 
 - `SONAR_TOKEN` (secret) — required to authenticate the scan and backlog sync
 - `SONAR_HOST_URL` — defaults to `https://sonarcloud.io`
