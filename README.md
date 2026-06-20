@@ -190,6 +190,21 @@ See [core/README.md](core/README.md) for API details.
 
 ---
 
+## SonarQube in CI
+
+The GitHub Actions CI workflow now runs a SonarQube/SonarCloud scan after the existing build and test steps whenever the `SONAR_TOKEN` repository secret is configured.
+
+Set this repository secret and, if needed, these repository variables:
+
+- `SONAR_TOKEN` (secret) — required to authenticate the scan and backlog sync
+- `SONAR_HOST_URL` — defaults to `https://sonarcloud.io`
+- `SONAR_ORGANIZATION` — defaults to the GitHub repository owner
+- `SONAR_PROJECT_KEY` — defaults to `<owner>_<repo>`
+
+On pushes to `main`, the workflow also syncs open SonarQube findings into grouped GitHub backlog issues labeled `sonarqube` and `technical-debt`, so repeated findings for the same Sonar rule are tracked together.
+
+---
+
 ## Requirements
 
 - **Java**: JDK 21 or higher
