@@ -176,12 +176,15 @@ See [core/README.md](core/README.md) for API details.
 | Command | Description |
 |---------|-------------|
 | `./gradlew build` | Build all Gradle modules and run tests |
+| `./gradlew validateAll` | Run the full local validation flow, including Maven plugin verification, with Java 25 |
 | `./gradlew clean` | Delete all Gradle build outputs |
 | `./gradlew :core:test` | Run unit tests |
 | `./gradlew publishAllPublicationsToLocalRepoRepository` | Publish plugin to the local file repo used by `examples/test-project` |
 | `./gradlew :core:publishToMavenLocal` | Publish core to `~/.m2` (required before building the Maven plugin) |
 
 ### Maven
+
+Run Maven plugin validation with Java 25. `./gradlew validateAll` wires this up automatically by launching Maven with an explicit Java 25 `JAVA_HOME`.
 
 | Command | Description |
 |---------|-------------|

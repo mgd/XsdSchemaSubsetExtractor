@@ -3,6 +3,10 @@ plugins {
     id 'com.vanniktech.maven.publish' version '0.36.0' apply false
 }
 
+def java25Launcher = javaToolchains.launcherFor {
+    languageVersion = JavaLanguageVersion.of(25)
+}
+
 java {
     toolchain {
         languageVersion = JavaLanguageVersion.of(25)
@@ -15,6 +19,33 @@ repositories {
 
 dependencies {
     implementation project(':app')
+}
+
+tasks.register('verifyMavenPlugin', Exec) {
+    description = 'Builds the Maven plugin with an explicit Java 25 setup.'
+    group = 'verification'
+    dependsOn ':core:publishToMavenLocal'
+    workingDir = file('maven-plugin')
+    commandLine(
+        System.getProperty('os.name').toLowerCase().contains('win') ? 'mvn.cmd' : 'mvn',
+        'verify',
+        '-B',
+        '--no-transfer-progress',
+        '-Dgpg.skip=true'
+    )
+    doFirst {
+        def javaHome = java25Launcher.get().metadata.installationPath.asFile
+        def pathKey = System.getenv('PATH') != null ? 'PATH' : 'Path'
+        def pathValue = System.getenv(pathKey) ?: ''
+        environment 'JAVA_HOME', javaHome.absolutePath
+        environment pathKey, "${new File(javaHome, 'bin').absolutePath}${File.pathSeparator}${pathValue}"
+    }
+}
+
+tasks.register('validateAll') {
+    description = 'Runs the full local validation flow with Java 25.'
+    group = 'verification'
+    dependsOn 'build', 'verifyMavenPlugin'
 }
 
 tasks.register('extractXsdSubset', JavaExec) {
