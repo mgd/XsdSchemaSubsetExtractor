@@ -34,6 +34,7 @@ async function ensureLabels(github, owner, repo) {
 async function fetchSonarIssues(baseUrl, sonarToken, projectKey) {
     const issues = [];
     let page = 1;
+    const authHeader = 'Basic ' + Buffer.from(sonarToken + ':').toString('base64');
 
     while (true) {
         const url = new URL('/api/issues/search', baseUrl);
@@ -42,10 +43,9 @@ async function fetchSonarIssues(baseUrl, sonarToken, projectKey) {
         url.searchParams.set('ps', String(MAX_PAGE_SIZE));
         url.searchParams.set('p', String(page));
 
-        const credentials = Buffer.from(sonarToken + ':').toString('base64');
         const response = await fetch(url, {
             headers: {
-                Authorization: 'Basic ' + credentials,
+                Authorization: authHeader,
                 Accept: 'application/json'
             }
         });
