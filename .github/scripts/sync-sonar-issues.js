@@ -96,7 +96,11 @@ function escapeForAttribute(value) {
 }
 
 function issueTitle(group) {
-    return `SonarQube ${group.type}: ${group.rule} (${group.issues.length} open finding${group.issues.length === 1 ? '' : 's'})`;
+    return `SonarQube ${group.type}: ${group.rule} (${formatFindingCount(group.issues.length)})`;
+}
+
+function formatFindingCount(count) {
+    return `${count} open finding${count === 1 ? '' : 's'}`;
 }
 
 function issueBody(baseUrl, projectKey, group) {
@@ -141,7 +145,7 @@ function issueBody(baseUrl, projectKey, group) {
         '',
         `- **Type:** ${group.type}`,
         `- **Severity:** ${group.severity}`,
-        `- **Open findings:** ${sortedIssues.length}`,
+        `- **Open findings:** ${formatFindingCount(sortedIssues.length)}`,
         `- **Project:** \`${projectKey}\``,
         `- **SonarQube view:** ${new URL(`/project/issues?id=${projectKey}&open=${firstIssue.key}`, baseUrl).toString()}`,
         '',
@@ -157,7 +161,7 @@ function extractGroupKey(body = '') {
     return match?.[1];
 }
 
-function isRepositoryIssue(issue) {
+function isIssueNotPullRequest(issue) {
     return issue.pull_request === undefined;
 }
 
@@ -188,7 +192,7 @@ module.exports = async function syncSonarIssues({ core, github, context }) {
 
     const managedIssues = new Map(
         existingIssues
-            .filter((issue) => isRepositoryIssue(issue) && issue.body?.includes(MANAGED_MARKER))
+            .filter((issue) => isIssueNotPullRequest(issue) && issue.body?.includes(MANAGED_MARKER))
             .map((issue) => [extractGroupKey(issue.body), issue])
             .filter(([groupKey]) => groupKey)
     );
