@@ -6,12 +6,24 @@ on:
   pull_request:
     branches: [main]
 
+permissions:
+  contents: read
+  issues: write
+
+env:
+  HAS_SONAR_TOKEN: ${{ secrets.SONAR_TOKEN != '' }}
+  SONAR_HOST_URL: ${{ vars.SONAR_HOST_URL != '' && vars.SONAR_HOST_URL || 'https://sonarcloud.io' }}
+  SONAR_ORGANIZATION: ${{ vars.SONAR_ORGANIZATION != '' && vars.SONAR_ORGANIZATION || github.repository_owner }}
+  SONAR_PROJECT_KEY: ${{ vars.SONAR_PROJECT_KEY != '' && vars.SONAR_PROJECT_KEY || format('{0}_{1}', github.repository_owner, github.event.repository.name) }}
+
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
 
       - name: Build and test
         uses: devcontainers/ci@v0.3
@@ -23,3 +35,29 @@ jobs:
             ./gradlew build
             ./gradlew :core:publishToMavenLocal
             cd maven-plugin && mvn verify -B --no-transfer-progress -Dgpg.skip=true
+
+      - name: SonarQube scan
+        if: ${{ env.HAS_SONAR_TOKEN == 'true' }}
+        uses: SonarSource/sonarqube-scan-action@v6
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_HOST_URL: ${{ env.SONAR_HOST_URL }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        with:
+          args: >
+            -Dsonar.organization=${{ env.SONAR_ORGANIZATION }}
+            -Dsonar.projectKey=${{ env.SONAR_PROJECT_KEY }}
+            -Dsonar.projectName=${{ github.event.repository.name }}
+
+      - name: Sync SonarQube backlog issues
+        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && env.HAS_SONAR_TOKEN == 'true' }}
+        uses: actions/github-script@v7
+        env:
+          SONAR_HOST_URL: ${{ env.SONAR_HOST_URL }}
+          SONAR_PROJECT_KEY: ${{ env.SONAR_PROJECT_KEY }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const syncSonarIssues = require('./.github/scripts/sync-sonar-issues.js');
+            await syncSonarIssues({ core, github, context });
