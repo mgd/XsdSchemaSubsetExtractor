@@ -192,10 +192,15 @@ See [core/README.md](core/README.md) for API details.
 
 ## Development Containers
 
-- `.devcontainer/devcontainer.json` is the default lightweight dev container for downstream developers. It installs Java 25, Gradle, Maven, and GitHub CLI, but does **not** install Node/npm or Claude Code.
-- `.devcontainer/claude/devcontainer.json` preserves the existing `ghcr.io/wxbrew/devcontainers/java-gradle-mvn-claude:latest` image for Claude Code users.
+| Branch | Purpose | Dev container |
+|---|---|---|
+| `java/dev/devcontainer` | Lightweight default path for downstream developers | `.devcontainer/devcontainer.json` |
+| `java/dev/claude-devcontainer` | Protected status-quo path for Claude Code users and automation that still needs the heavier image | `.devcontainer/claude/devcontainer.json` |
+
+- `.devcontainer/devcontainer.json` installs Java 25, Gradle, Maven, and GitHub CLI, but does **not** install Node/npm or Claude Code.
+- `.devcontainer/claude/devcontainer.json` preserves the existing `ghcr.io/wxbrew/devcontainers/java-gradle-mvn-claude:latest` image.
 - GitHub Actions already use the Claude-enabled image directly in workflow YAML, so CI and release automation remain unchanged.
-- If you want a dedicated protected branch for Claude-enabled development, keep that branch pointed at `.devcontainer/claude/devcontainer.json` and configure the branch protection rule in the repository settings.
+- Configure branch protection for `java/dev/claude-devcontainer` in the repository settings.
 
 ---
 
