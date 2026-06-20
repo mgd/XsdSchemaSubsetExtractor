@@ -66,7 +66,7 @@ async function fetchSonarIssues(baseUrl, sonarToken, projectKey) {
         issues.push(...payload.issues);
 
         const responseTotal = payload.paging?.total ?? payload.total;
-        if (typeof responseTotal !== 'number' || issues.length >= responseTotal) {
+        if (typeof responseTotal !== 'number' || issues.length > responseTotal) {
             break;
         }
 
