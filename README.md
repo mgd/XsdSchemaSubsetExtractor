@@ -190,6 +190,15 @@ See [core/README.md](core/README.md) for API details.
 
 ---
 
+## Development Containers
+
+- `.devcontainer/devcontainer.json` is the default lightweight dev container for downstream developers. It installs Java 25, Gradle, Maven, and GitHub CLI, but does **not** install Node/npm or Claude Code.
+- `.devcontainer/claude/devcontainer.json` preserves the existing `ghcr.io/wxbrew/devcontainers/java-gradle-mvn-claude:latest` image for Claude Code users.
+- GitHub Actions already use the Claude-enabled image directly in workflow YAML, so CI and release automation remain unchanged.
+- If you want a dedicated protected branch for Claude-enabled development, keep that branch pointed at `.devcontainer/claude/devcontainer.json` and configure the branch protection rule in the repository settings.
+
+---
+
 ## SonarQube in CI
 
 The GitHub Actions CI workflow now runs a SonarQube/SonarCloud scan after the existing build and test steps whenever the `SONAR_TOKEN` repository secret is configured.
