@@ -1,4 +1,4 @@
 {
   "name": "xsd-schema-subset-extractor",
-  "image": "ghcr.io/wxbrew/devcontainers/java-gradle-mvn:latest"
+  "image": "ghcr.io/wxbrew/devcontainers/java-gradle-mvn-claude:latest"
 }
