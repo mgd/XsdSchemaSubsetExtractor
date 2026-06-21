@@ -182,6 +182,7 @@ See [core/README.md](core/README.md) for API details.
 | Command | Description |
 |---------|-------------|
 | `./gradlew build` | Build all Gradle modules and run tests |
+| `./gradlew validateAll` | Run the full local validation flow, including Maven plugin verification, with Java 25 |
 | `./gradlew clean` | Delete all Gradle build outputs |
 | `./gradlew :core:test` | Run unit tests |
 | `./gradlew publishAllPublicationsToLocalRepoRepository` | Publish plugin to the local file repo used by `examples/test-project` |
@@ -189,10 +190,26 @@ See [core/README.md](core/README.md) for API details.
 
 ### Maven
 
+Run Maven plugin validation with Java 25. `./gradlew validateAll` wires this up automatically by launching Maven with an explicit Java 25 `JAVA_HOME`.
+
 | Command | Description |
 |---------|-------------|
 | `cd maven-plugin && mvn install` | Build and install the Maven plugin to `~/.m2` |
 | `cd maven-plugin && mvn clean` | Delete Maven plugin build output |
+
+---
+
+## Development Containers
+
+| Branch | Purpose | Dev container |
+|---|---|---|
+| `java/dev/devcontainer` | Lightweight default path for downstream developers | `.devcontainer/devcontainer.json` |
+| `java/dev/claude-devcontainer` | Protected status-quo path for Claude Code users and automation that still needs the heavier image | `.devcontainer/claude/devcontainer.json` |
+
+- `.devcontainer/devcontainer.json` installs Java 25, Gradle, Maven, and GitHub CLI, but does **not** install Node/npm or Claude Code.
+- `.devcontainer/claude/devcontainer.json` preserves the existing `ghcr.io/wxbrew/devcontainers/java-gradle-mvn-claude:latest` image.
+- GitHub Actions CI now installs Temurin JDK 25 explicitly before running the Gradle and Maven validation steps.
+- Configure branch protection for `java/dev/claude-devcontainer` in the repository settings.
 
 ---
 
@@ -213,5 +230,5 @@ On pushes to `main`, the workflow also syncs open SonarQube findings into groupe
 
 ## Requirements
 
-- **Java**: JDK 21 or higher
+- **Java**: JDK 25
 - **Gradle**: 9.0 or higher (wrapper included)
