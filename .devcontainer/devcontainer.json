@@ -1,41 +1,4 @@
 {
   "name": "xsd-schema-subset-extractor",
-  "image": "mcr.microsoft.com/devcontainers/base:ubuntu-24.04",
-  "features": {
-    "ghcr.io/devcontainers/features/java:1": {
-      "version": "25",
-      "jdkDistro": "open",
-      "installGradle": true,
-      "gradleVersion": "9.1.0",
-      "installMaven": true,
-      "mavenVersion": "3.9.15",
-      "installAnt": false
-    },
-    "ghcr.io/devcontainers/features/github-cli:1": {
-      "version": "latest"
-    }
-  },
-  "customizations": {
-    "vscode": {
-      "extensions": [
-        "vscjava.vscode-java-pack",
-        "vscjava.vscode-gradle",
-        "GitHub.vscode-pull-request-github",
-        "EditorConfig.EditorConfig",
-        "streetsidesoftware.code-spell-checker",
-        "redhat.vscode-xml",
-        "redhat.vscode-yaml",
-        "SonarSource.sonarlint-vscode",
-        "eamodio.gitlens"
-      ],
-      "settings": {
-        "java.configuration.updateBuildConfiguration": "automatic",
-        "java.compile.nullAnalysis.mode": "automatic",
-        "gradle.nestedProjects": true,
-        "terminal.integrated.defaultProfile.linux": "bash"
-      }
-    }
-  },
-  "remoteUser": "vscode",
-  "postCreateCommand": "java -version && gradle --version && mvn -version && gh --version"
+  "image": "ghcr.io/wxbrew/devcontainers/java-gradle-mvn-claude:latest"
 }
