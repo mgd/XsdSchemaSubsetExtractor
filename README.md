@@ -1,5 +1,11 @@
 # XSD Schema Subset Extractor
 
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=mgd_XsdSchemaSubsetExtractor&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=mgd_XsdSchemaSubsetExtractor)
+[![Bugs](https://sonarcloud.io/api/project_badges/measure?project=mgd_XsdSchemaSubsetExtractor&metric=bugs)](https://sonarcloud.io/summary/new_code?id=mgd_XsdSchemaSubsetExtractor)
+[![Vulnerabilities](https://sonarcloud.io/api/project_badges/measure?project=mgd_XsdSchemaSubsetExtractor&metric=vulnerabilities)](https://sonarcloud.io/summary/new_code?id=mgd_XsdSchemaSubsetExtractor)
+[![Code Smells](https://sonarcloud.io/api/project_badges/measure?project=mgd_XsdSchemaSubsetExtractor&metric=code_smells)](https://sonarcloud.io/summary/new_code?id=mgd_XsdSchemaSubsetExtractor)
+[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=mgd_XsdSchemaSubsetExtractor&metric=coverage)](https://sonarcloud.io/summary/new_code?id=mgd_XsdSchemaSubsetExtractor)
+
 A Java-based utility and Gradle plugin that extracts minimal, self-contained XML Schema (XSD) files from a large multi-file schema definition.
 
 Given one or more root element names, the extractor traces all transitive dependencies—types, groups, attribute groups, attributes, and polymorphic subtypes—and produces a single flat XSD per root element with no `<xs:import>` or `<xs:include>` statements.
