@@ -15,7 +15,7 @@ jobs:
       - name: Publish
         uses: devcontainers/ci@v0.3
         with:
-          imageName: ghcr.io/wxbrew/devcontainers/java-gradle-mvn-claude
+          imageName: ghcr.io/wxbrew/devcontainers/java-gradle-mvn
           imageTag: latest
           push: never
           env: |
